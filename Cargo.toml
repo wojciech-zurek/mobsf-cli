@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "mobsf-core",
+    "mobsf-cli"
+]

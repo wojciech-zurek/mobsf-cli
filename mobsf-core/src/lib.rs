@@ -13,13 +13,15 @@ use crate::error::{AppError, Cause};
 use futures_util::StreamExt;
 
 use crate::error::Cause::InvalidHttpResponse;
-use crate::response::{DeleteScanResponse, ErrorResponse, ScanResponse, ScansResponse, UploadResponse};
+use crate::response::{DeleteScanResponse, ErrorResponse, ScanResponse, ScansResponse, UploadResponse, ViewSourceResponse};
 
 const UPLOAD_API: &'static str = "api/v1/upload";
 const SCANS_API: &'static str = "api/v1/scans";
 const SCAN_API: &'static str = "api/v1/scan";
 const DELETE_SCAN_API: &'static str = "api/v1/delete_scan";
 const REPORT_PDF_API: &'static str = "api/v1/download_pdf";
+const REPORT_JSON_API: &'static str = "api/v1/report_json";
+const VIEW_SOURCE_API: &'static str = "api/v1/view_source";
 
 pub struct Mobsf {
     server: String,
@@ -72,7 +74,7 @@ impl Mobsf {
             });
         }
 
-        Ok(response.json::<UploadResponse>().await?)
+        Ok(response.json().await?)
     }
 
     pub async fn scans(&self) -> Result<ScansResponse, AppError> {
@@ -88,7 +90,7 @@ impl Mobsf {
             });
         }
 
-        Ok(response.json::<ScansResponse>().await?)
+        Ok(response.json().await?)
     }
 
     pub async fn scan(&self, scan_type: &str, file_name: &str, hash: &str) -> Result<ScanResponse, AppError> {
@@ -110,7 +112,7 @@ impl Mobsf {
             });
         }
 
-        Ok(response.json::<ScanResponse>().await?)
+        Ok(response.json().await?)
     }
 
     pub async fn delete_scan(&self, hash: &str) -> Result<DeleteScanResponse, AppError> {
@@ -130,7 +132,7 @@ impl Mobsf {
             });
         }
 
-        Ok(response.json::<DeleteScanResponse>().await?)
+        Ok(response.json().await?)
     }
 
     pub async fn report_pdf(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
@@ -154,14 +156,33 @@ impl Mobsf {
         Ok(())
     }
 
-    pub async fn report_json(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
-        Ok(())
+    pub async fn report_json(&self, hash: &str) -> Result<String, AppError> {
+        let mut params = HashMap::new();
+        params.insert("hash", hash);
+
+        let response = self.client
+            .post(self.url(REPORT_JSON_API))
+            .form(&params)
+            .send()
+            .await?;
+
+        Ok(response.text().await?)
     }
 
-    pub async fn view_source(&self, hash: &str, file_path: &str, file_type: &str) -> Result<(), AppError> {
-        Ok(())
-    }
+    pub async fn view_source(&self, scan_type: &str, file_path: &str, hash: &str) -> Result<ViewSourceResponse, AppError> {
+        let mut params = HashMap::new();
+        params.insert("hash", hash);
+        params.insert("file", file_path);
+        params.insert("type", scan_type);
 
+        let response = self.client
+            .post(self.url(VIEW_SOURCE_API))
+            .form(&params)
+            .send()
+            .await?;
+
+        Ok(response.json().await?)
+    }
 
     fn url(&self, api: &str) -> String {
         format!("{}/{}", &self.server, api)

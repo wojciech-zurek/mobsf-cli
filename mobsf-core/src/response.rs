@@ -74,7 +74,7 @@ impl ScansResponse {
 }
 
 impl Display for ScansResponse {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _: &mut Formatter<'_>) -> std::fmt::Result {
         // writeln!(f, "{: <4} | {: <25} | {: <32} | {: <32} | {: <10} | {: <30} | {: <19} | {}",
         //          "Type",
         //          "File name",
@@ -106,7 +106,7 @@ impl Display for ScansResponse {
             .separator(Separator::builder().build())
             .border(Border::builder().build());
 
-        print_stdout(table).map_err(|it| {
+        print_stdout(table).map_err(|_| {
             core::fmt::Error::default()
         })
     }
@@ -274,6 +274,45 @@ impl DeleteScanResponse {
 impl Display for DeleteScanResponse {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Deleted: {}", self.deleted)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ViewSourceResponse {
+    title: String,
+    file: String,
+    #[serde(rename(deserialize = "type"))]
+    file_type: String,
+    data: String,
+    // sqlite: String,
+    version: String,
+}
+
+impl ViewSourceResponse {
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+    pub fn file(&self) -> &str {
+        &self.file
+    }
+    pub fn file_type(&self) -> &str {
+        &self.file_type
+    }
+    pub fn data(&self) -> &str {
+        &self.data
+    }
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+}
+
+impl Display for ViewSourceResponse {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Title: {}", self.title)?;
+        writeln!(f, "File: {}", self.file)?;
+        writeln!(f, "Type: {}", self.file_type)?;
+        writeln!(f, "Version: {}", self.version)?;
+        writeln!(f, "{}", self.data)
     }
 }
 

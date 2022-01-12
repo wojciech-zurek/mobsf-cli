@@ -45,18 +45,25 @@ async fn execute(app: App, matches: ArgMatches) -> Result<(), AppError> {
             app.scans().await?;
         }
         Some(("report", report_matches)) => {
-            let report_type = report_matches.value_of("report_type").unwrap();
-            let hash = report_matches.value_of("file_hash").unwrap();
+            match report_matches.subcommand() {
+                Some(("pdf", pdf_matches)) => {
+                    let hash = pdf_matches.value_of("file_hash").unwrap();
+                    let output_file_path = pdf_matches.value_of("output_file_path").unwrap();
+                    app.report_pdf(hash, output_file_path).await?;
+                }
+                Some(("json", json_matches)) => {
+                    let hash = json_matches.value_of("file_hash").unwrap();
 
-            match report_type {
-                "pdf" => {
-                    app.report_pdf(hash, "report.pdf").await?;
+                    if json_matches.is_present("stdout_output") {
+                        app.print_report_json(hash).await?;
+                    } else {
+                        let output_file_path = json_matches.value_of("output_file_path").unwrap();
+                        app.write_report_json(hash, output_file_path).await?;
+                    }
                 }
-                "json" => {
-                    app.report_json(hash, "report.json").await?;
-                }
-                _ => {}
-            };
+                Some(_) => {}
+                None => {}
+            }
         }
         Some(("delete", delete_matches)) => {
             let hash = delete_matches.value_of("file_hash").unwrap();

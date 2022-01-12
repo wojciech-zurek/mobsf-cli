@@ -52,12 +52,20 @@ impl App {
     }
 
     pub async fn report_pdf(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
-        self.inner.report_pdf(hash, file_path).await
+        self.inner.report_pdf(hash, file_path).await?;
+        println!("File saved: {}", file_path);
+
+        Ok(())
     }
 
-    pub async fn report_json(&self, hash: &str, _: &str) -> Result<(), AppError> {
-        let response = self.inner.report_json(hash).await?;
+    pub async fn write_report_json(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
+        let _ = self.inner.write_report_json(hash, file_path).await?;
+        println!("File saved: {}", file_path);
+        Ok(())
+    }
 
+    pub async fn print_report_json(&self, hash: &str) -> Result<(), AppError> {
+        let response = self.inner.report_json(hash).await?;
         println!("{}", response);
 
         Ok(())
@@ -66,6 +74,7 @@ impl App {
     pub async fn view_source(&self, scan_type: &str, file_path: &str, hash: &str) -> Result<(), AppError> {
         let response = self.inner.view_source(scan_type, file_path, hash).await?;
         print!("{}", response);
+
         Ok(())
     }
 }

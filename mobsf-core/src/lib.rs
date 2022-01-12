@@ -166,7 +166,19 @@ impl Mobsf {
             .send()
             .await?;
 
-        Ok(response.text().await?)
+        let txt_json = response.text().await?;
+
+        Ok(txt_json)
+    }
+
+    pub async fn write_report_json(&self, hash: &str, file_path: &str) -> Result<String, AppError> {
+        let txt_json = self.report_json(hash).await?;
+
+        let mut file = BufWriter::new(fs::File::create(file_path)?);
+
+        file.write_all((&txt_json).as_ref())?;
+
+        Ok(txt_json)
     }
 
     pub async fn view_source(&self, scan_type: &str, file_path: &str, hash: &str) -> Result<ViewSourceResponse, AppError> {

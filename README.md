@@ -29,7 +29,7 @@ OPTIONS:
     -V, --version       Print version information
 
 SUBCOMMANDS:
-    ci        Upload a file, auto start scan, save reports, check scores.
+    ci        For CI/CD stages. Upload a file, auto start scan, save reports, check scores.
     delete    Delete scan.
     help      Print this message or the help of the given subcommand(s)
     play      Upload a file and auto start scan.

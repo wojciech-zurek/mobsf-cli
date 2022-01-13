@@ -120,7 +120,7 @@ pub fn cli() -> ArgMatches {
         )
         .subcommand(
             App::new("ci")
-                .about("Upload a file, auto start scan, save reports, check scores.")
+                .about("For CI/CD stages. Upload a file, auto start scan, save reports, check scores.")
                 .arg(Arg::new("file_path")
                     .required(true)
                     .index(1)

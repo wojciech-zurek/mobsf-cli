@@ -150,7 +150,7 @@ pub fn cli() -> ArgMatches {
                     .takes_value(true)
                 )
                 .arg(Arg::new("security")
-                    .short('o')
+                    .short('u')
                     .help("Below this score rise a security error. 0-100")
                     .default_value("71")
                     .takes_value(true)

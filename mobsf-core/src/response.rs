@@ -215,8 +215,8 @@ impl ScanResponse {
     pub fn sha256(&self) -> &str {
         &self.sha256
     }
-    pub fn average_cvss(&self) -> &f32 {
-        &self.average_cvss
+    pub fn average_cvss(&self) -> f32 {
+        self.average_cvss
     }
     pub fn security_score(&self) -> u8 {
         self.security_score

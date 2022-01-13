@@ -10,38 +10,37 @@ pub enum Cause {
     InvalidHttpResponse(u16),
 }
 
-pub struct AppError {
+pub struct MobsfError {
     pub cause: Cause,
     pub message: String,
 }
 
-impl Error for AppError {}
+impl Error for MobsfError {}
 
-impl Debug for AppError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "")?;
-        writeln!(f, "✖ {:?}, {}", self.cause, self.message)
-    }
-}
-
-impl Display for AppError {
+impl Debug for MobsfError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}, {}", self.cause, self.message)
     }
 }
 
-impl From<reqwest::Error> for AppError {
+impl Display for MobsfError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}, {}", self.cause, self.message)
+    }
+}
+
+impl From<reqwest::Error> for MobsfError {
     fn from(e: reqwest::Error) -> Self {
-        AppError {
+        MobsfError {
             cause: HttpClientError,
             message: e.to_string(),
         }
     }
 }
 
-impl From<io::Error> for AppError {
+impl From<io::Error> for MobsfError {
     fn from(e: io::Error) -> Self {
-        AppError {
+        MobsfError {
             cause: IoError,
             message: e.to_string(),
         }

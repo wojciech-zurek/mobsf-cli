@@ -1,16 +1,65 @@
-use mobsf_core::error::AppError;
+use mobsf_core::error::MobsfError;
 use mobsf_core::Mobsf;
-use crate::NAME;
+use crate::{AppError, NAME};
 
 pub struct App {
     inner: Mobsf,
 }
 
 impl App {
-    pub async fn new(api_key: String, host: String) -> Result<Self, AppError> {
+    pub async fn new(api_key: String, server: String) -> Result<Self, MobsfError> {
         Ok(App {
-            inner: Mobsf::new(api_key, host).await?
+            inner: Mobsf::new(api_key, server).await?
         })
+    }
+
+    pub async fn ci(&self, file_path: &str, re_scan: bool, path_to_save: &str, cvss: f32, trackers: u16, security: u8) -> Result<(), AppError> {
+        println!("{}", "Uploading...");
+        let upload_response = self.inner.upload(file_path).await?;
+        print!("{}", upload_response);
+
+        println!("{}", "Scanning. It takes some time...");
+        let scan_response = self.inner.scan(upload_response.scan_type(), upload_response.file_name(), upload_response.hash(), re_scan).await?;
+        print!("{}", scan_response);
+
+        let path = format!("{}/report_{}", path_to_save.trim_end_matches("/"), scan_response.file_name());
+        let pdf_path = format!("{}.pdf", &path);
+        println!("{}", "Downloading reports...");
+        self.inner.report_pdf(upload_response.hash(), pdf_path.as_str()).await?;
+        println!("Pdf report saved: {}", pdf_path);
+
+        let json_path = format!("{}.json", &path);
+        let _ = self.inner.write_report_json(upload_response.hash(), json_path.as_str()).await?;
+        println!("Json report saved: {}", json_path);
+
+        println!("{}", "Validating scan scores...");
+        if scan_response.average_cvss() > cvss {
+            return Err(AppError {
+                message: format!("CVSS score [{}] is to high. Max: {}!", scan_response.average_cvss(), cvss),
+            });
+        } else {
+            println!("CVSS score: {}/{}. OK", scan_response.average_cvss(), cvss);
+        }
+
+        if scan_response.security_score() < security {
+            return Err(AppError {
+                message: format!("Security score [{}] is to low. Min: {}!", scan_response.security_score(), security),
+            });
+        } else {
+            println!("Security score: {}/{}. OK", scan_response.security_score(), security);
+        }
+
+        if let Some(r) = scan_response.trackers() {
+            if r.detected_trackers() > trackers {
+                return Err(AppError {
+                    message: format!("Trackers score [{}] is to high. Max: {}!", r.detected_trackers(), trackers),
+                });
+            } else {
+                println!("Trackers score: {}/{}. OK", r.detected_trackers(), trackers);
+            }
+        }
+
+        Ok(())
     }
 
     pub async fn upload_file(&self, file_path: &str) -> Result<(), AppError> {
@@ -28,8 +77,8 @@ impl App {
         Ok(())
     }
 
-    pub async fn scan(&self, scan_type: &str, file_name: &str, hash: &str) -> Result<(), AppError> {
-        let response = self.inner.scan(scan_type, file_name, hash).await?;
+    pub async fn scan(&self, scan_type: &str, file_name: &str, hash: &str, re_scan: bool) -> Result<(), AppError> {
+        let response = self.inner.scan(scan_type, file_name, hash, re_scan).await?;
         print!("{}", response);
 
         Ok(())
@@ -41,11 +90,13 @@ impl App {
         Ok(())
     }
 
-    pub async fn play(&self, file_path: &str) -> Result<(), AppError> {
+    pub async fn play(&self, file_path: &str, re_scan: bool) -> Result<(), AppError> {
+        println!("{}", "Uploading...");
         let response = self.inner.upload(file_path).await?;
         print!("{}", response);
 
-        let response = self.inner.scan(response.scan_type(), response.file_name(), response.hash()).await?;
+        println!("{}", "Scanning. It takes some time...");
+        let response = self.inner.scan(response.scan_type(), response.file_name(), response.hash(), re_scan).await?;
         print!("{}", response);
 
         Ok(())
@@ -53,14 +104,14 @@ impl App {
 
     pub async fn report_pdf(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
         self.inner.report_pdf(hash, file_path).await?;
-        println!("File saved: {}", file_path);
+        println!("Pdf report saved: {}", file_path);
 
         Ok(())
     }
 
     pub async fn write_report_json(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
         let _ = self.inner.write_report_json(hash, file_path).await?;
-        println!("File saved: {}", file_path);
+        println!("Json report saved: {}", file_path);
         Ok(())
     }
 

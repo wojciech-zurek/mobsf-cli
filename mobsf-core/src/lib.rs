@@ -9,7 +9,7 @@ use std::path::Path;
 use std::time::Duration;
 use reqwest::{Client, multipart};
 use reqwest::header::HeaderMap;
-use crate::error::{AppError, Cause};
+use crate::error::{MobsfError, Cause};
 use futures_util::StreamExt;
 
 use crate::error::Cause::InvalidHttpResponse;
@@ -40,9 +40,9 @@ impl Mobsf {
         }
     }
 
-    pub async fn upload(&self, file_path: &str) -> Result<UploadResponse, AppError> {
+    pub async fn upload(&self, file_path: &str) -> Result<UploadResponse, MobsfError> {
         let path = Path::new(file_path);
-        let file_name = path.file_name().ok_or(AppError {
+        let file_name = path.file_name().ok_or(MobsfError {
             cause: Cause::IoError,
             message: "Invalid file name or path".to_string(),
         })?.to_str().unwrap();
@@ -67,7 +67,7 @@ impl Mobsf {
             .await?;
 
         if response.status().as_u16() != 200 {
-            return Err(AppError {
+            return Err(MobsfError {
                 cause: InvalidHttpResponse(response.status().as_u16()),
                 message: format!("{}", &response.json::<ErrorResponse>().await?),
                 // message: format!("{}", &response.text().await?),
@@ -77,14 +77,14 @@ impl Mobsf {
         Ok(response.json().await?)
     }
 
-    pub async fn scans(&self) -> Result<ScansResponse, AppError> {
+    pub async fn scans(&self) -> Result<ScansResponse, MobsfError> {
         let response = self.client
             .get(self.url(SCANS_API))
             .send()
             .await?;
 
         if response.status().as_u16() != 200 {
-            return Err(AppError {
+            return Err(MobsfError {
                 cause: InvalidHttpResponse(response.status().as_u16()),
                 message: format!("{}", &response.json::<ErrorResponse>().await?),
             });
@@ -93,11 +93,14 @@ impl Mobsf {
         Ok(response.json().await?)
     }
 
-    pub async fn scan(&self, scan_type: &str, file_name: &str, hash: &str) -> Result<ScanResponse, AppError> {
+    pub async fn scan(&self, scan_type: &str, file_name: &str, hash: &str, re_scan: bool) -> Result<ScanResponse, MobsfError> {
         let mut params = HashMap::new();
         params.insert("scan_type", scan_type);
         params.insert("file_name", file_name);
         params.insert("hash", hash);
+        if re_scan {
+            params.insert("re_scan", "1");
+        }
 
         let response = self.client
             .post(self.url(SCAN_API))
@@ -106,7 +109,7 @@ impl Mobsf {
             .await?;
 
         if response.status().as_u16() != 200 {
-            return Err(AppError {
+            return Err(MobsfError {
                 cause: InvalidHttpResponse(response.status().as_u16()),
                 message: format!("{}", &response.json::<ErrorResponse>().await?),
             });
@@ -115,7 +118,7 @@ impl Mobsf {
         Ok(response.json().await?)
     }
 
-    pub async fn delete_scan(&self, hash: &str) -> Result<DeleteScanResponse, AppError> {
+    pub async fn delete_scan(&self, hash: &str) -> Result<DeleteScanResponse, MobsfError> {
         let mut params = HashMap::new();
         params.insert("hash", hash);
 
@@ -126,7 +129,7 @@ impl Mobsf {
             .await?;
 
         if response.status().as_u16() != 200 {
-            return Err(AppError {
+            return Err(MobsfError {
                 cause: InvalidHttpResponse(response.status().as_u16()),
                 message: format!("{}", &response.json::<ErrorResponse>().await?),
             });
@@ -135,7 +138,7 @@ impl Mobsf {
         Ok(response.json().await?)
     }
 
-    pub async fn report_pdf(&self, hash: &str, file_path: &str) -> Result<(), AppError> {
+    pub async fn report_pdf(&self, hash: &str, file_path: &str) -> Result<(), MobsfError> {
         let mut params = HashMap::new();
         params.insert("hash", hash);
 
@@ -156,7 +159,7 @@ impl Mobsf {
         Ok(())
     }
 
-    pub async fn report_json(&self, hash: &str) -> Result<String, AppError> {
+    pub async fn report_json(&self, hash: &str) -> Result<String, MobsfError> {
         let mut params = HashMap::new();
         params.insert("hash", hash);
 
@@ -171,7 +174,7 @@ impl Mobsf {
         Ok(txt_json)
     }
 
-    pub async fn write_report_json(&self, hash: &str, file_path: &str) -> Result<String, AppError> {
+    pub async fn write_report_json(&self, hash: &str, file_path: &str) -> Result<String, MobsfError> {
         let txt_json = self.report_json(hash).await?;
 
         let mut file = BufWriter::new(fs::File::create(file_path)?);
@@ -181,7 +184,7 @@ impl Mobsf {
         Ok(txt_json)
     }
 
-    pub async fn view_source(&self, scan_type: &str, file_path: &str, hash: &str) -> Result<ViewSourceResponse, AppError> {
+    pub async fn view_source(&self, scan_type: &str, file_path: &str, hash: &str) -> Result<ViewSourceResponse, MobsfError> {
         let mut params = HashMap::new();
         params.insert("hash", hash);
         params.insert("file", file_path);

@@ -1,6 +1,8 @@
 # mobsf-cli
 
 mobsf-cli is a wrapper for the Mobile Security Framework (MobSF) REST-API.
+Created especially for Continuous Integration (CI) / Continuous Delivery (CD) stages.
+You can use only use one command to upload a file, auto start scan, save reports, check scores.
 
 [Mobile Security Framework (MobSF)](https://github.com/MobSF/Mobile-Security-Framework-MobSF) is an automated, all-in-one mobile application (Android/iOS/Windows) pen-testing, malware analysis and security assessment framework capable of performing static and dynamic analysis.
 

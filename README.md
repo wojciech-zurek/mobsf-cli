@@ -1,10 +1,12 @@
 # mobsf-cli
 
-mobsf-cli is a wrapper for the Mobile Security Framework (MobSF) REST-API.
-Created especially for Continuous Integration (CI) / Continuous Delivery (CD) stages.
-You can use only use one command to upload a file, auto start scan, save reports, check scores.
+mobsf-cli is a wrapper for the Mobile Security Framework (MobSF) REST-API. Created especially for Continuous
+Integration (CI) / Continuous Delivery (CD) stages. You can use only use one command to upload a file, auto start scan,
+save reports, check scores.
 
-[Mobile Security Framework (MobSF)](https://github.com/MobSF/Mobile-Security-Framework-MobSF) is an automated, all-in-one mobile application (Android/iOS/Windows) pen-testing, malware analysis and security assessment framework capable of performing static and dynamic analysis.
+[Mobile Security Framework (MobSF)](https://github.com/MobSF/Mobile-Security-Framework-MobSF) is an automated,
+all-in-one mobile application (Android/iOS/Windows) pen-testing, malware analysis and security assessment framework
+capable of performing static and dynamic analysis.
 
 ## Manual installation
 
@@ -12,7 +14,7 @@ You can use only use one command to upload a file, auto start scan, save reports
 git clone git@github.com:wojciech-zurek/mobsf-cli.git
 cd mobsf-cli
 cargo build --release
-sudo cp target/release/mobsf-cli /bin/mobsf-cli
+sudo cp target/release/mobsf-cli /usr/bin/mobsf-cli
 mobsf-cli --help
 ```
 
@@ -42,7 +44,6 @@ SUBCOMMANDS:
     scans     Display recent scans.
     source    View source files.
     upload    Upload a file.
-
 ```
 
 ## Server and api key
@@ -62,5 +63,5 @@ You can set env for api and server config:
 - `MOBSF_SERVER` - for server
 
 ```fish
-MOBSF_API_KEY="ed...c4" mobsf-cli scans'
+MOBSF_API_KEY="ed...c4" MOBSF_SERVER="https://su...com:8000" mobsf-cli scans
 ```

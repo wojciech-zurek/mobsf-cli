@@ -215,12 +215,3 @@ async fn client(api_key: String) -> Result<Client, reqwest::Error> {
         .default_headers(header_map)
         .build()
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
